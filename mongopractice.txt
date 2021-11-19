@@ -1,0 +1,72 @@
+//Show Databases
+show dbs
+db // prints the current database
+
+//Switch Database
+use <database_name>
+
+//Create Collection
+// Create collection with a $jsonschema
+db.createCollection("contacts", {
+   validator: {$jsonSchema: {
+      bsonType: "object",
+      required: ["phone"],
+      properties: {
+         phone: {
+            bsonType: "string",
+            description: "must be a string and is required"
+         },
+         email: {
+            bsonType: "string",
+            pattern: "@mongodb\.com$",
+            description: "must be a string and match the regular expression pattern"
+         },
+         status: {
+            enum: [ "Unknown", "Incomplete" ],
+            description: "can only be one of the enum values"
+         }
+      }
+   }}
+})
+
+
+//Show Collections
+show collections
+
+//Create
+db.coll.insertOne({name: "Max"})
+db.coll.insert([{name: "Max"}, {name:"Alex"}]) // ordered bulk insert
+db.coll.insert([{name: "Max"}, {name:"Alex"}], {ordered: false}) // unordered bulk insert
+db.coll.insert({date: ISODate()})
+db.coll.insert({name: "Max"}, {"writeConcern": {"w": "majority", "wtimeout": 5000}})
+
+//Read
+db.coll.findOne() // returns a single document
+db.coll.find()    // returns a cursor - show 20 results - "it" to display more
+db.coll.find().pretty()
+db.coll.find({name: "Max", age: 32}) // implicit logical "AND".
+db.coll.find({date: ISODate("2020-09-25T13:57:17.180Z")})
+db.coll.find({name: "Max", age: 32}).explain("executionStats") // or "queryPlanner" or "allPlansExecution"
+db.coll.distinct("name")
+
+//update
+db.coll.update({"_id": 1}, {"year": 2016}) // WARNING! Replaces the entire document
+db.coll.update({"_id": 1}, {$set: {"year": 2016, name: "Max"}})
+db.coll.update({"_id": 1}, {$unset: {"year": 1}})
+db.coll.update({"_id": 1}, {$rename: {"year": "date"} })
+db.coll.update({"_id": 1}, {$inc: {"year": 5}})
+db.coll.update({"_id": 1}, {$mul: {price: NumberDecimal("1.25"), qty: 2}})
+db.coll.update({"_id": 1}, {$min: {"imdb": 5}})
+db.coll.update({"_id": 1}, {$max: {"imdb": 8}})
+db.coll.update({"_id": 1}, {$currentDate: {"lastModified": true}})
+db.coll.update({"_id": 1}, {$currentDate: {"lastModified": {$type: "timestamp"}}})
+
+
+
+//Delete
+db.coll.remove({name: "Max"})
+db.coll.remove({name: "Max"}, {justOne: true})
+db.coll.remove({}) // WARNING! Deletes all the docs but not the collection itself and its index definitions
+db.coll.remove({name: "Max"}, {"writeConcern": {"w": "majority", "wtimeout": 5000}})
+db.coll.findOneAndDelete({"name": "Max"})
+
